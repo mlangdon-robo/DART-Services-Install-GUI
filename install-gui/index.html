@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Install Dart Services</title>
+  <style>
+    :root {
+      --bg: #e6e1d6;
+      --ink: #1c1915;
+      --muted: #5e584f;
+      --line: #cfc6b8;
+      --panel: #f6f3ec;
+      --panel-2: #efeae1;
+      --accent: #b84316;
+      --accent-ink: #fff8f3;
+      --ok: #1f6b45;
+      --ok-bg: #e5f2ea;
+      --warn: #8a4b12;
+      --warn-bg: #f8ecd9;
+      --danger: #8f2d2d;
+      --danger-bg: #f8e6e4;
+      --shadow: 0 18px 50px rgba(48, 36, 22, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 220px),
+        var(--bg);
+      font: 16px/1.45 "Segoe UI", "Helvetica Neue", sans-serif;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+
+    .wrap {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    header { margin-bottom: 22px; }
+
+    .mark { display: flex; gap: 14px; align-items: center; }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+    }
+
+    .lede { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
+
+    code, .path {
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .steps button {
+      text-align: left;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .steps button[aria-current="step"] {
+      background: var(--ink);
+      color: #f7f3ea;
+      border-color: var(--ink);
+    }
+
+    .steps small { display: block; color: var(--muted); font-size: 12px; }
+    .steps button[aria-current="step"] small { color: #c8bba8; }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .panel[hidden], [hidden] { display: none !important; }
+
+    h2 { margin: 0 0 6px; font-size: 20px; letter-spacing: -0.02em; }
+
+    .section-copy { margin: 0 0 16px; color: var(--muted); }
+
+    .checks { display: grid; gap: 10px; }
+
+    .check {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 10px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: white;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      margin-top: 6px;
+      border-radius: 50%;
+      background: var(--line);
+    }
+
+    .check.ok .dot { background: var(--ok); }
+    .check.warn .dot { background: var(--warn); }
+    .check.bad .dot { background: var(--danger); }
+    .check strong { display: block; }
+    .check p { margin: 2px 0 0; color: var(--muted); }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .note, .banner {
+      margin-top: 14px;
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .note { background: var(--panel-2); color: var(--muted); }
+    .banner.ok { background: var(--ok-bg); color: var(--ok); }
+    .banner.warn { background: var(--warn-bg); color: var(--warn); }
+    .banner.bad { background: var(--danger-bg); color: var(--danger); }
+
+    label.field {
+      display: block;
+      margin-bottom: 14px;
+    }
+
+    label.field span, legend {
+      display: block;
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px 12px;
+    }
+
+    select:focus, input:focus, button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .hint { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .hint.warn { color: var(--warn); }
+
+    .sdk-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sdk-row input { position: absolute; opacity: 0; }
+    .sdk-row label {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: 999px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+    .sdk-row label:has(input:checked) {
+      background: var(--ink);
+      color: #f7f3ea;
+      border-color: var(--ink);
+    }
+
+    fieldset { border: 0; margin: 0 0 16px; padding: 0; }
+
+    .actions, .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .actions { justify-content: space-between; margin-top: 8px; }
+    .row-actions { margin-top: 14px; }
+
+    button.primary, button.secondary, button.quiet {
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+
+    button.primary { background: var(--accent); color: var(--accent-ink); border: 0; font-weight: 650; }
+    button.secondary { background: white; border: 1px solid var(--line); }
+    button.quiet { background: transparent; border: 0; color: var(--muted); padding-inline: 8px; }
+    button:disabled { opacity: 0.45; cursor: default; }
+
+    .services { display: grid; gap: 8px; margin: 14px 0; }
+    .service {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    .service b { font-weight: 650; }
+    .state { color: var(--muted); }
+
+    .log-wrap { margin-top: 16px; }
+    .log-wrap h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    pre {
+      margin: 0;
+      max-height: 280px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #221f1b;
+      color: #f3ecdf;
+      border-radius: 14px;
+      padding: 14px;
+      font: 13px/1.5 Consolas, "Cascadia Mono", monospace;
+    }
+
+    .status { min-height: 1.4em; color: var(--muted); font-size: 14px; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--danger); }
+
+    a { color: var(--accent); }
+
+    @media (max-width: 800px) {
+      .steps, .choice, .split, .actions { grid-template-columns: 1fr; display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="mark">
+        <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
+          <rect width="36" height="36" rx="10" fill="#1c1915"/>
+          <path d="M9 24.5V11.5h4.2l4.8 8.2 4.8-8.2H27v13h-3.2v-7.3l-4.1 7.3h-3.4l-4.1-7.3v7.3H9z" fill="#f3ecdf"/>
+        </svg>
+        <div>
+          <h1>Install Dart Services</h1>
+          <p class="lede">Check the container runtime, save <code>.env</code>, and start the simulator. This follows the Quick Start in the Dart Services Compose README.</p>
+        </div>
+      </div>
+    </header>
+
+    <nav class="steps" aria-label="Install steps">
+      <button type="button" id="tab-runtime" aria-current="step">1. Runtime<small>Docker or Rancher</small></button>
+      <button type="button" id="tab-settings">2. Settings<small>Write .env</small></button>
+      <button type="button" id="tab-start">3. Start<small>Compose up</small></button>
+    </nav>
+
+    <section class="panel" id="step-runtime">
+      <h2>Container runtime</h2>
+      <p class="section-copy">Install one runtime, then leave it running. The repository is already on this PC, so the clone step is done.</p>
+      <div class="checks" id="checks">Checking this PC…</div>
+      <div class="choice">
+        <button type="button" class="secondary" id="install-docker">Install Docker Desktop</button>
+        <button type="button" class="secondary" id="install-rancher">Install Rancher Desktop</button>
+      </div>
+      <p class="note">Docker Desktop is paid for commercial use. Rancher Desktop is free. After Rancher installs, set Preferences → Container Engine to <strong>dockerd (moby)</strong>. The containerd engine does not include Compose. Run only one of these at a time. Windows may ask you to approve the installer.</p>
+      <div class="row-actions">
+        <button type="button" class="quiet" id="recheck">Recheck this PC</button>
+        <button type="button" class="primary" id="to-settings">Continue</button>
+      </div>
+    </section>
+
+    <section class="panel" id="step-settings" hidden>
+      <h2>Simulator settings</h2>
+      <p class="section-copy">Compose reads <code>.env</code> from the project folder. Saving here creates that file from <code>.env.example</code> and keeps the comments.</p>
+      <form id="settings">
+        <fieldset>
+          <legend>SDK version</legend>
+          <div class="sdk-row" id="sdk-row"></div>
+          <p class="hint">Image tag for the simulator. The README lists sdk2 through sdk7.</p>
+        </fieldset>
+        <label class="field">
+          <span>Robot model</span>
+          <select id="robot"></select>
+          <p class="hint" id="robot-hint">P3020 is listed for sdk4 and above.</p>
+        </label>
+        <div class="split">
+          <label class="field">
+            <span>Simulator CPU</span>
+            <input id="cpu" type="number" min="0.1" max="128" step="any" required>
+            <p class="hint">Cores for the simulator container. The README default is 4.</p>
+          </label>
+          <label class="field">
+            <span>Simulator memory</span>
+            <input id="memory" type="text" list="memory-sizes" required spellcheck="false" autocomplete="off">
+            <datalist id="memory-sizes">
+              <option value="2g"></option>
+              <option value="4g"></option>
+              <option value="8g"></option>
+              <option value="16g"></option>
+            </datalist>
+            <p class="hint">Docker size, such as 2g or 512m.</p>
+          </label>
+        </div>
+        <div class="actions">
+          <p class="status" id="save-status" role="status"></p>
+          <button type="submit" class="primary" id="save">Save .env</button>
+        </div>
+      </form>
+      <div class="row-actions">
+        <button type="button" class="quiet" id="back-runtime">Back</button>
+        <button type="button" class="primary" id="to-start">Continue</button>
+      </div>
+    </section>
+
+    <section class="panel" id="step-start" hidden>
+      <h2>Start</h2>
+      <p class="section-copy">The first start downloads about 800 MB and can take several minutes. Later starts take seconds.</p>
+      <div id="runtime-banner" class="banner warn" hidden></div>
+      <div class="services" id="services"></div>
+      <p class="hint">Build UI is at <a href="http://127.0.0.1:3002" id="ui-link">http://127.0.0.1:3002</a> after <code>build-module-ui</code> is running. Simulator ports are 12345, 3601, 502, and 12360/udp.</p>
+      <div id="port-list"></div>
+      <div class="row-actions">
+        <button type="button" class="primary" id="start-build">Start simulator and build modules</button>
+        <button type="button" class="secondary" id="start-sim">Start simulator only</button>
+        <button type="button" class="secondary" id="update">Update images</button>
+        <button type="button" class="secondary" id="stop">Stop</button>
+      </div>
+      <div class="log-wrap">
+        <h3 id="log-title">Output</h3>
+        <pre id="log">No task yet.</pre>
+      </div>
+      <div id="failure" class="banner bad" hidden></div>
+      <div class="row-actions">
+        <button type="button" class="secondary" id="remove-orphans" hidden>Remove leftover containers</button>
+        <button type="button" class="quiet" id="back-settings">Back</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const SDK_CHOICES = ["sdk2", "sdk3", "sdk4", "sdk5", "sdk6", "sdk7"];
+    const MODEL_GROUPS = [
+      ["M series", ["M0609", "M0617", "M1013", "M1509"]],
+      ["A series", ["A0509", "A0912"]],
+      ["H series", ["H2017", "H2515"]],
+      ["E series", ["E0509"]],
+      ["P series", ["P3020"]],
+    ];
+    const KNOWN_MODELS = new Set(MODEL_GROUPS.flatMap(([, models]) => models));
+
+    const steps = {
+      runtime: document.getElementById("step-runtime"),
+      settings: document.getElementById("step-settings"),
+      start: document.getElementById("step-start"),
+    };
+    const tabs = {
+      runtime: document.getElementById("tab-runtime"),
+      settings: document.getElementById("tab-settings"),
+      start: document.getElementById("tab-start"),
+    };
+    const checks = document.getElementById("checks");
+    const sdkRow = document.getElementById("sdk-row");
+    const robot = document.getElementById("robot");
+    const cpu = document.getElementById("cpu");
+    const memory = document.getElementById("memory");
+    const robotHint = document.getElementById("robot-hint");
+    const saveStatus = document.getElementById("save-status");
+    const services = document.getElementById("services");
+    const portList = document.getElementById("port-list");
+    const runtimeBanner = document.getElementById("runtime-banner");
+    const log = document.getElementById("log");
+    const logTitle = document.getElementById("log-title");
+    const failure = document.getElementById("failure");
+    const removeOrphans = document.getElementById("remove-orphans");
+    const installDocker = document.getElementById("install-docker");
+    const installRancher = document.getElementById("install-rancher");
+    const startBuild = document.getElementById("start-build");
+    const startSim = document.getElementById("start-sim");
+    const updateButton = document.getElementById("update");
+    const stopButton = document.getElementById("stop");
+    const saveButton = document.getElementById("save");
+    const uiLink = document.getElementById("ui-link");
+
+    let machine = null;
+    let pollTimer = 0;
+    let formReady = false;
+    let jobRunning = false;
+
+    function show(step) {
+      for (const name of Object.keys(steps)) {
+        steps[name].hidden = name !== step;
+        tabs[name].setAttribute("aria-current", name === step ? "step" : "false");
+      }
+    }
+
+    function values() {
+      const sdk = document.querySelector("input[name='SDK_VERSION']:checked");
+      return {
+        SDK_VERSION: sdk ? sdk.value : "",
+        ROBOT_MODEL: robot.value,
+        SIMULATOR_CPU: cpu.value.trim(),
+        SIMULATOR_MEMORY: memory.value.trim(),
+      };
+    }
+
+    function sdkNumber(value) {
+      const match = /^sdk(\d+)$/.exec(value || "");
+      return match ? Number(match[1]) : 0;
+    }
+
+    function renderSdk(selected) {
+      const choices = SDK_CHOICES.includes(selected) ? SDK_CHOICES.slice() : SDK_CHOICES.concat(selected);
+      sdkRow.replaceChildren();
+      for (const version of choices) {
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "SDK_VERSION";
+        input.value = version;
+        input.checked = version === selected;
+        const text = document.createElement("span");
+        text.textContent = version;
+        label.append(input, text);
+        sdkRow.append(label);
+      }
+    }
+
+    function renderModels(selected) {
+      robot.replaceChildren();
+      for (const [groupName, models] of MODEL_GROUPS) {
+        const group = document.createElement("optgroup");
+        group.label = groupName;
+        for (const model of models) {
+          const option = document.createElement("option");
+          option.value = model;
+          option.textContent = model;
+          group.append(option);
+        }
+        robot.append(group);
+      }
+      if (selected && !KNOWN_MODELS.has(selected)) {
+        const option = document.createElement("option");
+        option.value = selected;
+        option.textContent = selected;
+        robot.append(option);
+      }
+      robot.value = selected;
+    }
+
+    function updateRobotHint() {
+      const early = sdkNumber(values().SDK_VERSION) > 0 && sdkNumber(values().SDK_VERSION) < 4;
+      if (robot.value === "P3020" && early) {
+        robotHint.textContent = "P3020 is listed for sdk4 and above. This SDK may not include it.";
+        robotHint.classList.add("warn");
+      } else {
+        robotHint.textContent = "P3020 is listed for sdk4 and above.";
+        robotHint.classList.remove("warn");
+      }
+    }
+
+    function fillForm(next) {
+      renderSdk(next.SDK_VERSION || "sdk7");
+      renderModels(next.ROBOT_MODEL || "M1013");
+      cpu.value = next.SIMULATOR_CPU || "4";
+      memory.value = next.SIMULATOR_MEMORY || "2g";
+      updateRobotHint();
+      formReady = true;
+    }
+
+    function check(kind, title, detail) {
+      const row = document.createElement("article");
+      row.className = "check " + kind;
+      const dot = document.createElement("div");
+      dot.className = "dot";
+      const body = document.createElement("div");
+      const strong = document.createElement("strong");
+      strong.textContent = title;
+      const copy = document.createElement("p");
+      copy.textContent = detail;
+      body.append(strong, copy);
+      row.append(dot, body);
+      return row;
+    }
+
+    function renderChecks() {
+      checks.replaceChildren();
+      const docker = machine.docker;
+      checks.append(check("ok", "Repository", machine.repo));
+      checks.append(check(machine.git ? "ok" : "warn", machine.git ? "Git" : "Git is optional", machine.git || "This copy is already here. Git is only needed to clone the repository."));
+      if (!docker.cli) {
+        checks.append(check("bad", "Docker is not installed", "Install Docker Desktop or Rancher Desktop, then start it and recheck."));
+      } else if (!docker.composeOk) {
+        checks.append(check("bad", "Docker Compose is missing", docker.composeError || "Rancher Desktop must use the dockerd (moby) engine. containerd does not include Compose."));
+      } else if (!docker.daemonOk) {
+        checks.append(check("warn", "Docker is installed, but the daemon is not answering", docker.daemonError || "Start Docker Desktop or Rancher Desktop and wait about a minute."));
+      } else {
+        checks.append(check("ok", "Docker is ready", "Client " + (docker.clientVersion || "installed") + ", Compose " + (docker.composeVersion || "installed") + ", server " + (docker.serverVersion || "running") + "."));
+      }
+      if (docker.dockerDesktop && docker.rancher) {
+        checks.append(check("warn", "Docker Desktop and Rancher Desktop are both running", "The README recommends running only one of them at a time."));
+      }
+      checks.append(check(machine.envExists ? "ok" : "warn", machine.envExists ? ".env is present" : ".env will be created", machine.envExists ? "Compose reads this file from the project folder." : "Continue to Settings and save, or start from the last step. The file is created from .env.example."));
+      installDocker.disabled = jobRunning || !machine.winget;
+      installRancher.disabled = jobRunning || !machine.winget;
+      if (!machine.winget) {
+        checks.append(check("warn", "winget was not found", "Install Docker Desktop or Rancher Desktop from their websites, then recheck."));
+      }
+    }
+
+    function renderServices() {
+      services.replaceChildren();
+      const runningUi = machine.containers.some((item) => item.name === "build-module-ui" && item.state.toLowerCase() === "running");
+      uiLink.style.pointerEvents = runningUi ? "" : "none";
+      uiLink.style.opacity = runningUi ? "" : "0.45";
+      if (!machine.containers.length) {
+        const empty = document.createElement("p");
+        empty.className = "hint";
+        empty.textContent = "No Dart Services containers yet.";
+        services.append(empty);
+      } else {
+        for (const item of machine.containers) {
+          const row = document.createElement("div");
+          row.className = "service";
+          const name = document.createElement("b");
+          name.textContent = item.name || item.service;
+          const state = document.createElement("span");
+          state.className = "state";
+          state.textContent = [item.state, item.status].filter(Boolean).join(" · ");
+          row.append(name, state);
+          services.append(row);
+        }
+      }
+      portList.replaceChildren();
+      if (machine.ports.length) {
+        const banner = document.createElement("div");
+        banner.className = "banner warn";
+        const lines = machine.ports.map((item) => item.proto + " " + item.port + " (" + item.service + ") is used by " + (item.process || "PID " + item.pid));
+        banner.textContent = "These host ports are already in use, so the containers may not start. " + lines.join("; ") + ".";
+        portList.append(banner);
+      }
+      const docker = machine.docker;
+      if (!docker.daemonOk) {
+        runtimeBanner.hidden = false;
+        runtimeBanner.textContent = docker.daemonError || "Start the container runtime before launching Compose.";
+      } else {
+        runtimeBanner.hidden = true;
+      }
+      startBuild.disabled = jobRunning || !docker.daemonOk;
+      startSim.disabled = jobRunning || !docker.daemonOk;
+      updateButton.disabled = jobRunning || !docker.daemonOk;
+      stopButton.disabled = jobRunning || !docker.daemonOk;
+      removeOrphans.disabled = jobRunning;
+    }
+
+    function setLog(text) {
+      const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 48;
+      log.textContent = text || "No task yet.";
+      if (nearBottom) log.scrollTop = log.scrollHeight;
+    }
+
+    function explainFailure(text) {
+      const lower = text.toLowerCase();
+      removeOrphans.hidden = !lower.includes("already in use");
+      if (!text || !lower.trim()) {
+        failure.hidden = true;
+        return;
+      }
+      let message = "";
+      if (lower.includes("is not a docker command") || lower.includes("unknown flag: --profile")) {
+        message = "Compose is unavailable. In Rancher Desktop, set Preferences → Container Engine to dockerd (moby), open a new terminal, and recheck.";
+      } else if (lower.includes("cannot connect to the docker daemon") || lower.includes("docker daemon")) {
+        message = "The runtime is not reachable. Start Docker Desktop or Rancher Desktop and wait about a minute, then try again.";
+      } else if (lower.includes("already in use")) {
+        message = "A container name from an earlier run is still reserved. Remove the leftover containers, then start again.";
+      } else if (lower.includes("port is already allocated") || lower.includes("bind:")) {
+        message = "A host port is already taken. Close the program using it, or reboot if Windows is holding the port, then start again.";
+      } else if (lower.includes("only 2 cpus") || lower.includes("range of cpus")) {
+        message = "The runtime has fewer CPUs than SIMULATOR_CPU. Lower the CPU setting, or give the virtual machine at least 4 CPUs and 6 GB.";
+      }
+      failure.hidden = !message;
+      failure.textContent = message;
+    }
+
+    async function refresh() {
+      const response = await fetch("/api/status");
+      if (!response.ok) throw new Error("Could not check this PC.");
+      machine = await response.json();
+      if (!formReady) fillForm(machine.values);
+      renderChecks();
+      renderServices();
+    }
+
+    async function pollJob() {
+      const response = await fetch("/api/job");
+      const job = await response.json();
+      const labels = {
+        "install-docker": "Installing Docker Desktop",
+        "install-rancher": "Installing Rancher Desktop",
+        up: "Starting Dart Services",
+        down: "Stopping",
+        update: "Updating images",
+        "remove-orphans": "Removing leftover containers",
+      };
+      logTitle.textContent = job.running ? (labels[job.action] || "Working") : "Output";
+      setLog(job.log);
+      if (job.running) {
+        jobRunning = true;
+        pollTimer = setTimeout(pollJob, 700);
+        return;
+      }
+      clearTimeout(pollTimer);
+      jobRunning = false;
+      await refresh();
+      if (job.exitCode === 0 || /already installed|no available upgrade|no applicable upgrade/i.test(job.log || "")) {
+        failure.hidden = true;
+        removeOrphans.hidden = true;
+        if (job.action === "install-docker" || job.action === "install-rancher") {
+          logTitle.textContent = "Installer finished";
+        }
+      } else if (job.action) {
+        explainFailure(job.log || "");
+      }
+    }
+
+    async function startJob(action, profile) {
+      clearTimeout(pollTimer);
+      jobRunning = true;
+      failure.hidden = true;
+      setLog("Starting…");
+      if (machine) {
+        renderChecks();
+        renderServices();
+      }
+      const body = { action };
+      if (profile) body.profile = profile;
+      if (action === "up" || action === "update") body.values = values();
+      try {
+        const response = await fetch("/api/job", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not start the task.");
+        pollJob();
+      } catch (error) {
+        jobRunning = false;
+        setLog(error.message);
+        failure.hidden = false;
+        failure.textContent = error.message;
+        if (machine) {
+          renderChecks();
+          renderServices();
+        }
+      }
+    }
+
+    document.getElementById("tab-runtime").addEventListener("click", () => show("runtime"));
+    document.getElementById("tab-settings").addEventListener("click", () => show("settings"));
+    document.getElementById("tab-start").addEventListener("click", () => show("start"));
+    document.getElementById("to-settings").addEventListener("click", () => show("settings"));
+    document.getElementById("to-start").addEventListener("click", () => show("start"));
+    document.getElementById("back-runtime").addEventListener("click", () => show("runtime"));
+    document.getElementById("back-settings").addEventListener("click", () => show("settings"));
+    document.getElementById("recheck").addEventListener("click", () => refresh().catch((error) => { checks.textContent = error.message; }));
+
+    document.getElementById("settings").addEventListener("input", updateRobotHint);
+    document.getElementById("settings").addEventListener("change", updateRobotHint);
+    document.getElementById("settings").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (jobRunning) return;
+      saveButton.disabled = true;
+      saveStatus.textContent = "Saving…";
+      saveStatus.className = "status";
+      try {
+        const response = await fetch("/api/env", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ values: values() }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Save failed.");
+        saveStatus.textContent = "Saved .env";
+        saveStatus.className = "status ok";
+        await refresh();
+      } catch (error) {
+        saveStatus.textContent = error.message;
+        saveStatus.className = "status err";
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+
+    installDocker.addEventListener("click", () => {
+      if (window.confirm("Install Docker Desktop with winget? It is paid for commercial use.")) startJob("install-docker");
+    });
+    installRancher.addEventListener("click", () => {
+      if (window.confirm("Install Rancher Desktop with winget? After setup, set the container engine to dockerd (moby).")) startJob("install-rancher");
+    });
+    startBuild.addEventListener("click", () => { show("start"); startJob("up", "build"); });
+    startSim.addEventListener("click", () => { show("start"); startJob("up", "simulator"); });
+    updateButton.addEventListener("click", () => startJob("update", "build"));
+    stopButton.addEventListener("click", () => startJob("down"));
+    removeOrphans.addEventListener("click", () => startJob("remove-orphans"));
+
+    refresh().catch((error) => { checks.textContent = error.message; });
+  </script>
+</body>
+</html>
